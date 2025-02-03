@@ -1,48 +1,35 @@
 <?php
 
-// Check if the form was submitted and the "url" field is empty (honeypot technique)
+// if the url field is empty
 if(isset($_POST['url']) && $_POST['url'] == '') {
 
-    // Define recipient email
-    $youremail = 'hernandezedca@gmail.com';
+	// put your email address here
+	$youremail =hernandezedca@gmail.com;  
 
-    // Ensure required fields are set
-    if(isset($_POST['name'], $_POST['email'], $_POST['subject'], $_POST['message'])) {
+	// prepare message 
+	$body = "You have got a new message from the contact form on your website - RMVTherapy :
+	
+	Name:  $_POST[name]
+	Email:  $_POST[email]
+	Subject:  $_POST[subject]
+	Message:  $_POST[message]";
 
-        // Sanitize user input
-        $name = htmlspecialchars($_POST['name']);
-        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-        $subject = htmlspecialchars($_POST['subject']);
-        $message = htmlspecialchars($_POST['message']);
+	if( $_POST['email'] && !preg_match( "/[\r\n]/", $_POST['email']) ) {
+	  $headers = "From: $_POST[email]";
+	} else {
+	  $headers = "From: $youremail";
+	}
 
-        // Prepare email message
-        $body = "You have received a new message from the contact form on your website - RMVTherapy:
-        
-        Name: $name
-        Email: $email
-        Subject: $subject
-        Message: $message";
+	mail($youremail, 'Message from RMV Therapy', $body, $headers );
 
-        // Validate email and prevent header injection
-        if(filter_var($email, FILTER_VALIDATE_EMAIL) && !preg_match("/[\r\n]/", $email)) {
-            $headers = "From: $email\r\nReply-To: $email";
-        } else {
-            $headers = "From: $youremail";
-        }
+} ?>
 
-        // Send email
-        if(mail($youremail, "Message from RMV Therapy", $body, $headers)) {
-            // Redirect to thank you page
-            header("Location: thank-you.html");
-            exit;
-        } else {
-            echo "Error sending email.";
-        }
-    } else {
-        echo "All fields are required.";
-    }
-} else {
-    echo "Invalid submission.";
-}
-
-?>
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Thanks!</title>
+</head>
+<body>
+<p> Thank you! We will get back to you soon.</p>
+</body>
+</html>
