@@ -1,35 +1,48 @@
 <?php
 
-// if the url field is empty
+// Check if the form was submitted and the "url" field is empty (honeypot technique)
 if(isset($_POST['url']) && $_POST['url'] == '') {
 
-	// put your email address here
-	$youremail = 'hernandezedca@gmail.com';  
+    // Define recipient email
+    $youremail = 'hernandezedca@gmail.com';
 
-	// prepare message 
-	$body = "You have got a new message from the contact form on your website - RMVTherapy :
-	
-	Name:  $_POST[name]
-	Email:  $_POST[email]
-	Subject:  $_POST[subject]
-	Message:  $_POST[message]";
+    // Ensure required fields are set
+    if(isset($_POST['name'], $_POST['email'], $_POST['subject'], $_POST['message'])) {
 
-	if( $_POST['email'] && !preg_match( "/[\r\n]/", $_POST['email']) ) {
-	  $headers = "From: $_POST[email]";
-	} else {
-	  $headers = "From: $youremail";
-	}
+        // Sanitize user input
+        $name = htmlspecialchars($_POST['name']);
+        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+        $subject = htmlspecialchars($_POST['subject']);
+        $message = htmlspecialchars($_POST['message']);
 
-	mail($youremail, 'Message from RMV Therapy', $body, $headers );
+        // Prepare email message
+        $body = "You have received a new message from the contact form on your website - RMVTherapy:
+        
+        Name: $name
+        Email: $email
+        Subject: $subject
+        Message: $message";
 
-} ?>
+        // Validate email and prevent header injection
+        if(filter_var($email, FILTER_VALIDATE_EMAIL) && !preg_match("/[\r\n]/", $email)) {
+            $headers = "From: $email\r\nReply-To: $email";
+        } else {
+            $headers = "From: $youremail";
+        }
 
-<!DOCTYPE HTML>
-<html>
-<head>
-<title>Thanks!</title>
-</head>
-<body>
-<p> Thank you! We will get back to you soon.</p>
-</body>
-</html>
+        // Send email
+        if(mail($youremail, "Message from RMV Therapy", $body, $headers)) {
+            // Redirect to thank you page
+            header("Location: thank-you.html");
+            exit;
+        } else {
+            echo "Error sending email.";
+        }
+    } else {
+        echo "All fields are required.";
+    }
+} else {
+    echo "Invalid submission.";
+}
+
+?>
